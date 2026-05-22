@@ -64,7 +64,7 @@ impl App {
                 let x_slope = right - left;
                 let y_slope = bottom - top;
 
-                let gravity_strength = 0.00008;
+                let gravity_strength = 0.0002;
 
                 particle.vx += x_slope * gravity_strength;
                 particle.vy += y_slope * gravity_strength;

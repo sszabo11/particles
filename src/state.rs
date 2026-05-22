@@ -82,7 +82,10 @@ impl State {
 
                     if dist <= radius_f * radius_f {
                         let dist = dist.sqrt();
-                        let falloff = 1.0 - (dist / radius as f32);
+                        let norm_dist = dist / radius_f;
+                        //let falloff = 1.0 - (norm_dist * norm_dist * (3.0 - 2.0 * norm_dist));
+                        //let falloff = 0.01 * (1. / norm_dist); // nice
+                        let falloff = 0.05 * (1. / norm_dist); // nice
                         let i = (y * self.width as i32 + x) as usize;
                         self.fabric[i] += falloff * particle.mass;
                     }
