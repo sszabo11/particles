@@ -1,0 +1,9 @@
+[package]
+name = "particles"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pixels = "0.17.1"
+rand = "0.10.1"
+winit = "0.30.13"
