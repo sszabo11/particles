@@ -2,7 +2,7 @@ use rand::RngExt;
 
 pub struct State {
     pub particles: Vec<Particle>,
-    pub fabric: Vec<Vec<f32>>,
+    pub fabric: Vec<f32>,
     pub width: u32,
     pub height: u32,
 }
@@ -12,7 +12,7 @@ impl State {
         Self {
             width,
             height,
-            fabric: vec![vec![0.0; width as usize]; height as usize],
+            fabric: vec![0.0; (width * height) as usize],
             particles: (0..n_particles)
                 .map(|i| {
                     let mut rng = rand::rng();
@@ -28,23 +28,25 @@ impl State {
                     let center_y = height as f32 / 2.0;
 
                     // Spawn particles in a ring around the center
-                    let radius = 6.0;
+                    let radius = 20.0;
                     let angle = (i as f32) * 0.1; // Distribute them evenly
 
                     let px = center_x + angle.cos() * radius;
                     let py = center_y + angle.sin() * radius;
 
                     // THE ORBIT SECRET: Set velocity perpendicular to the position vector
-                    let orbit_speed = 0.07;
+                    //let orbit_speed = 0.01;
+                    let orbit_speed = rng.random_range(0.01..0.3);
                     let pvx = -angle.sin() * orbit_speed; // Flipped sin/cos creates a perfect swirl
                     let pvy = angle.cos() * orbit_speed;
 
+                    let mass = rng.random_range(0.5..50.);
                     Particle {
                         x: px,
                         y: py,
                         vx: pvx,
                         vy: pvy,
-                        mass: 1.,
+                        mass: mass,
                         ax: 0.,
                         ay: 0.,
                     }
@@ -55,12 +57,14 @@ impl State {
 
     // After you seed particles
     pub fn update_fabric(&mut self) {
-        let radius = 70;
-        for x in 0..self.width {
-            for y in 0..self.height {
-                self.fabric[x as usize][y as usize] = 0.;
-            }
-        }
+        let radius = 100;
+        let radius_f = radius as f32;
+        //for x in 0..self.width {
+        //    for y in 0..self.height {
+        //        let i = (y * self.width + x) as usize;
+        //    }
+        //}
+        self.fabric.fill(0.);
 
         for particle in self.particles.iter() {
             let px = particle.x as i32;
@@ -74,16 +78,20 @@ impl State {
                         continue;
                     }
 
-                    let dist = ((offset_x * offset_x + offset_y * offset_y) as f32).sqrt();
+                    let dist = (offset_x * offset_x + offset_y * offset_y) as f32;
 
-                    if dist <= radius as f32 {
+                    if dist <= radius_f * radius_f {
+                        let dist = dist.sqrt();
                         let falloff = 1.0 - (dist / radius as f32);
-                        let dip_amount = falloff * particle.mass;
-                        self.fabric[x as usize][y as usize] += dip_amount;
+                        let i = (y * self.width as i32 + x) as usize;
+                        self.fabric[i] += falloff * particle.mass;
                     }
                 }
             }
-            self.fabric[px as usize][py as usize] = -1.;
+            if py >= 0 && ((py as u32) < self.height) && px >= 0 && (px as u32) < self.width {
+                let i = (py * self.width as i32 + px) as usize;
+                self.fabric[i] = -1. * particle.mass;
+            }
         }
     }
 }
